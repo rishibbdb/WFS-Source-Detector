@@ -75,7 +75,7 @@ coordinates:
 ### Basic Source Seeding
 
 ```bash
-python pipeline.py config.yaml
+python pipeline_sourcedetector.py config.yaml
 ```
 
 This runs the complete pipeline:
@@ -87,7 +87,7 @@ This runs the complete pipeline:
 ### Source Seeding Only
 
 ```bash
-python pipeline.py config.yaml --source-seeding
+python pipeline_sourcedetector.py config.yaml --source-seeding
 ```
 
 Skips 3ML model generation, saves only source seeds to YAML.
@@ -95,7 +95,7 @@ Skips 3ML model generation, saves only source seeds to YAML.
 ### Verbose Output
 
 ```bash
-python pipeline.py config.yaml --verbose
+python pipeline_sourcedetector.py config.yaml --verbose
 ```
 
 Enables detailed logging throughout pipeline execution.
@@ -103,7 +103,7 @@ Enables detailed logging throughout pipeline execution.
 ### Skip Model File
 
 ```bash
-python pipeline.py config.yaml --skip-model-save
+python pipeline_sourcedetector.py config.yaml --skip-model-save
 ```
 
 Runs pipeline but skips 3ML `.model` file generation.
