@@ -287,7 +287,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For issues, questions, or suggestions:
 - Open an [GitHub Issue](https://github.com/rishibbdb/WFS-Source-Detector/issues)
-- Contact: your.email@institution.edu
+- Contact: rbabu@mtu.edu, rbabu@icecube.wisc.edu
 
 ## References
 
