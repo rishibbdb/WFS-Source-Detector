@@ -1,4 +1,4 @@
-# Wide-Field-Survey Source Seed Detector (DRIPS) 
+# Wide-Field-Survey(WFS) Source Seed Detector (DRIPS) 
 
 A Claude description of the algorithm ( which is 98% true )
 
@@ -15,7 +15,8 @@ A comprehensive pipeline for automated detection and analysis of gamma-ray sourc
 - **Parallel Processing**: Uses ThreadPoolExecutor for efficient multi-threaded blob detection
 
 ## Future Modifications
-- Include a plugins for the source detection on Fermi-LAT, H.E.S.S., VERITAS, IceCube, LHAASO
+- Include a plugins for the source detection on Fermi-LAT, IceCube, LHAASO
+- Include modifications for H.E.S.S., VERITAS
 - Implementation of Gammapy source seeding routines
 
 ## Installation
