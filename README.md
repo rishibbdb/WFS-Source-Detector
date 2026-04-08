@@ -1,5 +1,6 @@
-# HAWC Source Seed Detector (DRIPS)
+# HAWC Source Seed Detector (DRIPS) 
 
+A Claude description of the algorithm ( which is 98% true )
 A comprehensive pipeline for automated detection and analysis of gamma-ray sources with application to HAWC (High Altitude Water Cherenkov Observatory) data. The pipeline performs blob detection, filtering, and generates source seeds for 3ML (Multi-Mission Maximum Likelihood) fitting.
 
 ## Features
