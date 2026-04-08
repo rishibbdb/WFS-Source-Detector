@@ -1,4 +1,4 @@
-# HAWC Source Seed Detector (DRIPS) 
+# Wide-Field-Survey Source Seed Detector (DRIPS) 
 
 A Claude description of the algorithm ( which is 98% true )
 
