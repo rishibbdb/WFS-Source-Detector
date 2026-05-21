@@ -1,39 +1,39 @@
 import argparse as ap
 import os
 import sys
-import warnings
-import subprocess
-import matplotlib as mpl
+# import warnings
+# import subprocess
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+# import scipy
 from astropy.coordinates import SkyCoord
 for prefix in ("OMP", "MKL", "NUMEXPR"):
     os.environ[f"{prefix}_NUM_THREADS"] = "4"
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-import astromodels
-import astromodels.functions.priors as priors
+# import astromodels
+# import astromodels.functions.priors as priors
 
 import numpy as np
-import sys, os, re
+import sys, os
 sys.path.append(os.path.abspath(".."))
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+# import matplotlib.patches as patches
 from matplotlib.lines import Line2D
-import matplotlib.backends.backend_pdf as mpdf
+# import matplotlib.backends.backend_pdf as mpdf
 
-from astropy.io import fits
+# from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from astropy.stats import sigma_clip
+# from astropy.stats import sigma_clip
 import astropy.wcs.utils as astropy_utils
 
 from scipy.ndimage import gaussian_filter
 from skimage.filters import difference_of_gaussians
-from skimage.feature import blob_dog
+# from skimage.feature import blob_dog
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 import yaml
@@ -43,12 +43,12 @@ from pipeline_helpers import *
 
 class PipelineConfig:
     """Load and manage configuration from YAML file"""
-    
+
     def __init__(self, config_file: str):
         with open(config_file, 'r') as f:
             self.config = yaml.safe_load(f)
         self.config_file = config_file
-    
+
     def get(self, key: str, default=None):
         """Get config value using dot notation: 'section.subsection.key'"""
         keys = key.split('.')
@@ -59,17 +59,17 @@ class PipelineConfig:
             else:
                 return default
         return value
-    
+
     def __getitem__(self, key):
         return self.config[key]
-    
+
     def __repr__(self):
         return yaml.dump(self.config, default_flow_style=False)
 
 
 class SourceSeedDetector:
     """Main pipeline source detection class. Initializes with a configuration file and runs the source detection pipeline."""
-    
+
     def __init__(self, config_file: str):
         self.config = PipelineConfig(config_file)
         self.initialmap = self.config.get('paths.significance_map')
@@ -98,9 +98,10 @@ class SourceSeedDetector:
         self.y_length = self.config.get('coordinates.roi_y', 1.0)
         self.save_dir = self.config.get('paths.main_dir')
         os.makedirs(self.save_dir, exist_ok=True)
+
+        # These are detector-specific and can be up to the user.
         self.SIG_THRESHOLD = 5.0
         self.SMEAR_RADII = [0.25, 0.3, 0.4, 0.5]
-        
 
     def load_hawc_data(self):
         self.array, self.header, self.wcs, self.xnum, self.ynum, self.pixel_size = load_hawc_data(
@@ -108,6 +109,24 @@ class SourceSeedDetector:
         )
 
     def plot_maps(self, array : np.ndarray, wcs : WCS, pixel_size : float, coord_sys : str, max_signif : float, vmin: float, vmax: float, threshold: float, contour: bool = True, title: str = 'Sky Map', hotspots: list = None, blobs: dict = None, labels: list = None):
+        """Create an image for blob detection and filtering based on the HAWC data. Wrapper function for a matplotlib call
+
+        Args:
+            array (np.ndarray): _description_
+            wcs (WCS): _description_
+            pixel_size (float): the size of image pixels
+            coord_sys (str): galactic or celestial coordinates
+            max_signif (float): value of maximum significance in map
+            vmin (float): min value for Z scale
+            vmax (float): Max value for Z scale
+            threshold (float): significance threshold to exclude in map.
+            contour (bool, optional): plots a contour on top of map. Defaults to True.
+            title (str, optional): plot title name. Defaults to 'Sky Map'.
+            hotspots (list, optional): _description_. Defaults to None.
+            blobs (dict, optional): location of found blobs. Defaults to None.
+            labels (list, optional): labels for blogs. Defaults to None.
+        """
+
         fig, _ = make_plots(
                 array, wcs, pixel_size, coordsys=coord_sys,
                 threshold=threshold, vmin=vmin, vmax=vmax, contour=contour, blobs=blobs,
@@ -119,7 +138,9 @@ class SourceSeedDetector:
         plt.savefig(f"{self.save_dir}/{title}.png", dpi=300)
         plt.close()
 
-    def normalise_image(self, array : np.ndarray):
+    def normalise_image(self):
+
+        # Do not run a blob search on low significance maps
         if np.max(self.array) < self.SIG_THRESHOLD:
             print(f"    Below threshold ({np.max(self.array):.2f} < {self.SIG_THRESHOLD}sigma) — skipping.")
             fig_blank, ax_blank = plt.subplots(figsize=(8.5, 4))
@@ -134,26 +155,42 @@ class SourceSeedDetector:
             print("  Image softly floored to -5sigma")
             self.array = soft_floor(self.array, floor_min=-6, scale=1.0)
 
-        self.norm_image = (self.array - self.array.min()) / (self.array.max() - self.array.min())
+        # Some minor compute optimizations
+        img_min = self.array.min()
+        img_range = self.array.max() - img_min
 
-    def blob_detection(self, array: np.ndarray):
+        self.norm_image = np.subtract(self.array, img_min)
+        self.norm_image = np.divide(self.norm_image, img_range)
+
+    def blob_detection(self):
         self.all_ps_blobs,  self.all_ps_coords,  self.all_ps_radii  = [], [], []
         self.all_ext_blobs, self.all_ext_coords, self.all_ext_radii = [], [], []
+
         pbar = tqdm(self.SMEAR_RADII, desc='Processing Radii', leave=False)
         for radius in pbar:
+
             pbar.set_description(f"Processing radius {radius:.2f}°")
-            smear_radius=radius
+            smear_radius = radius
             pixel_smear = smear_radius/self.pixel_size
 
             print(f"Number of pixels corresponding to {smear_radius:.2f} smear radius = {pixel_smear:.2f}")
 
             dog_image = difference_of_gaussians(self.norm_image, 1, pixel_smear)
+
+            # Estimate background standard deviation and mask values larger than it.
             sigma_resid = estimate_background_sigma(dog_image)
+            dog_final = np.where(dog_image > 2 * sigma_resid, dog_image, 0)
+
             print("Estimated background RMS:", sigma_resid)
 
-            dog_final = np.where(dog_image > 2 * sigma_resid, dog_image, 0)
-            dog_norm = (dog_final-np.min(dog_final))/(np.max(dog_final)-np.min(dog_final))
-            extmap=gaussian_filter(self.norm_image-dog_norm, sigma=0.3/self.pixel_size)
+            dog_min = np.min(dog_final)
+            dog_max = np.max(dog_final)
+
+            dog_norm = np.subtract(dog_final, dog_min)
+            dog_norm = np.divide(dog_norm, dog_max - dog_min)
+
+            extmap = gaussian_filter(self.norm_image-dog_norm,
+                                     sigma=0.3/self.pixel_size)
             threshold_val = sigma_resid
 
             with ThreadPoolExecutor(max_workers=2) as ex:
@@ -165,21 +202,26 @@ class SourceSeedDetector:
             print(f"Raw blobs — point source: {len(ps_blobs)}, extended: {len(ext_blobs)}")
 
             ps_filt, ps_coords, ps_radii = (
-                    blob_filter_intensity(ps_blobs,  self.array, 5, self.wcs, self.pixel_size)
+                    blob_filter_intensity(ps_blobs,  self.array, 5,
+                                          self.wcs, self.pixel_size)
                     if len(ps_blobs)  > 0 else (np.empty((0,3)), [], [])
                 )
             ext_filt, ext_coords, ext_radii = (
-                blob_filter_intensity(ext_blobs, self.array, 5, self.wcs, self.pixel_size)
+                    blob_filter_intensity(ext_blobs, self.array, 5,
+                                          self.wcs, self.pixel_size)
                 if len(ext_blobs) > 0 else (np.empty((0,3)), [], [])
             )
 
             print(f"Sources after 5$\\sigma$ filtering: {len(ps_filt) + len(ext_filt)}")
 
             if len(ps_filt)  > 0:
-                self.all_ps_blobs.append(ps_filt);   self.all_ps_coords.append(ps_coords);   self.all_ps_radii.append(ps_radii)
+                self.all_ps_blobs.append(ps_filt)
+                self.all_ps_coords.append(ps_coords)
+                self.all_ps_radii.append(ps_radii)
             if len(ext_filt) > 0:
-                self.all_ext_blobs.append(ext_filt); self.all_ext_coords.append(ext_coords); self.all_ext_radii.append(ext_radii)
-
+                self.all_ext_blobs.append(ext_filt)
+                self.all_ext_coords.append(ext_coords)
+                self.all_ext_radii.append(ext_radii)
 
         combined_ps_blobs,  combined_ps_coords,  combined_ps_radii  = combine_blobs(self.all_ps_blobs,  self.all_ps_coords,  self.all_ps_radii)
         combined_ext_blobs, combined_ext_coords, combined_ext_radii = combine_blobs(self.all_ext_blobs, self.all_ext_coords, self.all_ext_radii)
@@ -214,10 +256,12 @@ class SourceSeedDetector:
 
     def blob_filters(self):
         self.ext_removed_group, self.ps_removed_group, self.ext_filtered_group, self.ps_filtered_group = [], [], [], []
+
         for lb, sbs in self.groups:
             tag_ps     = 0
             tag_ex     = 0
             ps_flagged = []
+
             if lb is None:
                 for sb, _ in sbs:
                     self.ps_filtered_group.append(sb)
@@ -228,6 +272,7 @@ class SourceSeedDetector:
 
             bright_frac = compute_bright_frac(self.array, ly, lx, lr)
             print(f"Intensity Fraction of pixels greater than 5 sigma detection threshold = {100*bright_frac:.1f}%")
+
             if bright_frac < 0.5:
                 print("Larger blob is artifact of blob detection on subtracted map")
                 tag_ex += 1
@@ -235,9 +280,11 @@ class SourceSeedDetector:
                     ps_flagged.append(sb)
             else:
                 coord_lb   = astropy_utils.pixel_to_skycoord(lx, ly, wcs=self.wcs).galactic
+
                 if len(sbs) == 0:
                     self.ext_filtered_group.append(lb)
                     continue
+
                 print(f"Larger blob coord = {coord_lb.l.deg, coord_lb.b.deg}")
                 if len(sbs) > 1:
                     lb_ts = float(self.array[ly, lx])
@@ -265,6 +312,7 @@ class SourceSeedDetector:
                             f"removing {len(dimmer_sbs)} dimmer SBs")
                         continue
                 print(f"  No smaller blobs overlapping larger blob — tagging as EXT")
+                
                 for sb, _ in sbs:
                     sy, sx, sr  = sb
                     sy, sx      = int(sy), int(sx)
@@ -357,7 +405,6 @@ class SourceSeedDetector:
             ax.text(lx, ly + lr + 10, f'TS={center_intensity_lb:.1f}',
                     color='black', fontsize=10, ha='center')
 
-
         for sb in self.ps_filtered_group:
             try:
                 sy, sx, sr = sb
@@ -388,7 +435,7 @@ class SourceSeedDetector:
         plt.close()
 
     def radius_to_sigma(self, R, fraction=0.6827):
-            return R / np.sqrt(2 * np.log(1 / (1 - fraction)))
+        return R / np.sqrt(2 * np.log(1 / (1 - fraction)))
 
     def convert_to_coord(self, input_blobs, wcs, npix):
         blobs = []
@@ -408,14 +455,14 @@ class SourceSeedDetector:
         """Convert blobs to coordinates and save results to YAML file, filtering to original ROI."""
         _, ext_coords, ext_radius = self.convert_to_coord(self.ext_filtered_group, self.wcs, self.pixel_size)
         _, ps_coords, ps_radius = self.convert_to_coord(self.ps_filtered_group, self.wcs, self.pixel_size)
-        
+
         total_coords = ps_coords + ext_coords
         total_coords_ra = [i.ra.value for i in ps_coords] + [i.ra.value for i in ext_coords]
         total_coords_dec = [i.dec.value for i in ps_coords] + [i.dec.value for i in ext_coords]
         total_radius = ps_radius + ext_radius
-        
+
         names = [f'Drip{i}' for i in range(len(total_coords))]
-        
+
         # Create DataFrame with all sources
         df_all = pd.DataFrame({
             'Name': names,
@@ -425,29 +472,29 @@ class SourceSeedDetector:
             'Circle Radius': total_radius,
             'Sigma Radius': [self.radius_to_sigma(R) for R in total_radius]
         })
-        
+
         # Get original ROI (without the +3 extension)
         original_roi_x = self.config.get('coordinates.roi_x', 1.0)
         original_roi_y = self.config.get('coordinates.roi_y', 1.0)
-        
+
         # Filter sources within original ROI bounds
         filtered_rows = []
         for _, row in df_all.iterrows():
             coord = SkyCoord(ra=row['ra']*u.degree, dec=row['dec']*u.degree, frame='icrs').galactic
             l_diff = abs(coord.l.deg - self.l)
             b_diff = abs(coord.b.deg - self.b)
-            
+
             # Keep if within original ROI
             if l_diff <= original_roi_x and b_diff <= original_roi_y:
                 filtered_rows.append(row)
-        
+
         # Create filtered DataFrame
         if filtered_rows:
             self.filtered_df = pd.DataFrame(filtered_rows).reset_index(drop=True)
             self.filtered_df['Name'] = [f'Drip{i}' for i in range(len(self.filtered_df))]
         else:
             self.filtered_df = pd.DataFrame(columns=['Name', 'ra', 'dec', 'ext', 'Circle Radius', 'Sigma Radius'])
-        
+
         # Save to YAML
         if len(self.filtered_df) > 0:
             sources_data = {
@@ -486,15 +533,15 @@ class SourceSeedDetector:
                 'note': 'No sources found within original ROI'
             }
             print(f"Found {len(df_all)} sources, but none within original ROI")
-        
+
         with open(f"{self.save_dir}/filtered_sources.yaml", 'w') as f:
             yaml.dump(sources_data, f, default_flow_style=False, sort_keys=False)
-        
-        print(f"Results saved to: {self.save_dir}/filtered_sources.yaml")
-        
+
         print(f"Results saved to: {self.save_dir}/filtered_sources.yaml")
 
-    def save_model_to_file(self, sources_dict, filtered_df, output_path="mymodel.model", 
+        print(f"Results saved to: {self.save_dir}/filtered_sources.yaml")
+
+    def save_model_to_file(self, sources_dict, filtered_df, output_path="mymodel.model",
                        hermes_present=None, hermes_path=None):
         """
         Saves a threeML Model to a .model file matching the BEGINSOURCE/ENDSOURCE format.
@@ -615,7 +662,6 @@ class SourceSeedDetector:
             lines.append("###################################ENDSOURCE###################################")
             lines.append("")
 
-
         all_vars = ("URM, " if hermes_present else "") + ", ".join(source_keys)
         lines.append(f"model = threeML.Model({all_vars})")
         lines.append("")
@@ -625,21 +671,27 @@ class SourceSeedDetector:
 
         print(f"Model saved to: {output_path}")
 
-
     def run_blob_detection(self):
+        """That will find source blobs in the data map.
+        """
+
         self.load_hawc_data()
         self.border_pixels = int(0.5 / self.pixel_size)
+
         print(f"  Map shape  : {self.ynum} × {self.xnum}  |  pixel size: {self.pixel_size:.4f}°")
         print(f"  Sig range  : [{np.min(self.array):.2f}, {np.max(self.array):.2f}]")
+
         self.max_signif = find_peak(self.array, self.wcs)
 
-        self.plot_maps(self.array, self.wcs, self.pixel_size, self.seed_coord_sys, self.max_signif, -5, 15, 5, contour=True, title='SkyImage', labels=['4hwc'])
 
-        self.normalise_image(self.array)
+        # Plot the original data and the normalized data
+        self.plot_maps(self.array, self.wcs, self.pixel_size, self.seed_coord_sys, self.max_signif, -5, 15, 5, contour=True, title='OriginalSkyImage', labels=['4hwc'])
+
+        self.normalise_image()
 
         self.plot_maps(self.norm_image, self.wcs, self.pixel_size, self.seed_coord_sys, self.max_signif, 0, 1, 0.4, contour=False, title='NormalisedImage', labels=['4hwc'])
 
-        self.blob_detection(self.norm_image)
+        self.blob_detection()
 
         self.blobs_dict = {'psblobs': self.final_ps_blobs, 'extblobs': self.final_ext_blobs}
 
@@ -658,9 +710,9 @@ class SourceSeedDetector:
         self.plot_filtering_results(title='FilteredBlobs_Labels')
         self.save_model()
         self.plot_maps(self.array, self.wcs, self.pixel_size, self.seed_coord_sys, self.max_signif, -5, 15, 5, contour=True, title='Source Seeds', hotspots=self.filtered_df, labels=['4haaawc'])
-        
+
     def run(self):
-        from threeML import *
+        # from threeML import *
 
         self.run_blob_detection()
         self.run_filtering()
@@ -682,21 +734,21 @@ if __name__ == "__main__":
     parser.add_argument("--source-seeding", action="store_true", help="Run only source seeding, skip filtering")
     parser.add_argument("--skip-model-save", action="store_true", help="Skip saving threeML model")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
-    
+
     args = parser.parse_args()
-    
+
     if not os.path.exists(args.config_file):
         print(f"Error: Config file '{args.config_file}' not found.")
         sys.exit(1)
-    
+
     try:
         detector = SourceSeedDetector(args.config_file)
-        
+
         if args.verbose:
             print(f"Configuration loaded from: {args.config_file}")
             print(f"Save directory: {detector.save_dir}")
             print(f"Significance map: {detector.initialmap}")
-        
+
         # Run pipeline
         if args.source_seeding:
             print("Running Source Seeding")
@@ -704,12 +756,12 @@ if __name__ == "__main__":
         else:
             print("Running Source Seeding and 3ML Model Generation")
             detector.run()
-        
+
         if not args.skip_model_save and not args.source_seeding:
             print(f"Pipeline complete. Results saved to: {detector.save_dir}")
         else:
             print("Pipeline complete.")
-    
+
     except ValueError as e:
         print(f"Configuration error: {e}")
         sys.exit(1)

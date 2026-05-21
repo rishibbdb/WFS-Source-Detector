@@ -9,7 +9,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from reproject import reproject_from_healpix
 from astropy.wcs import WCS
 from threeML import *
-from astropy.coordinates import Angle, SkyCoord
+from astropy.coordinates import SkyCoord
 import astropy.units as u
 import astropy.wcs.utils as astropy_utils
 from astropy.io.fits import Header
@@ -20,13 +20,13 @@ import tempfile
 import urllib
 import matplotlib.cm as cm
 from datetime import datetime
-import copy
+# import copy
 import yaml
 import re
 from astropy.table import Table
 from matplotlib.patches import Ellipse
-from astropy.coordinates import ICRS
-from astroquery.simbad import Simbad
+# from astropy.coordinates import ICRS
+# from astroquery.simbad import Simbad
 import sys
 import warnings
 from scipy.optimize import curve_fit
@@ -40,7 +40,7 @@ import sys, os, re
 sys.path.append(os.path.abspath(".."))
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+# import matplotlib.patches as patches
 from matplotlib.lines import Line2D
 import matplotlib.backends.backend_pdf as mpdf
 
@@ -51,14 +51,14 @@ import astropy.units as u
 from astropy.stats import sigma_clip
 import astropy.wcs.utils as astropy_utils
 
-from scipy.ndimage import gaussian_filter
-from skimage.filters import difference_of_gaussians
+# from scipy.ndimage import gaussian_filter
+# from skimage.filters import difference_of_gaussians
 from skimage.feature import blob_dog
-from concurrent.futures import ThreadPoolExecutor
-from tqdm import tqdm
+# from concurrent.futures import ThreadPoolExecutor
+# from tqdm import tqdm
 import yaml
 import pandas as pd
-import time
+# import time
 
 
 #Import HESS catalog
@@ -155,14 +155,14 @@ def loadmap(filename, coord_sys, coords,*args):
             target_header['CUNIT2'] = 'deg     '
             target_header['COORDSYS'] = 'galactic    '
             print("Loading Galactic Map")
-        
+
         skymap_data = ihdu[1].data["significance"] #.data["significance"]
         ihdu[1].header['COORDSYS'] = 'icrs    '
         wcs = WCS(target_header)
         # print(wcs)
         array, footprint = reproject_from_healpix(ihdu[1],target_header)
         print("Fits File loaded")
-        
+
     return array, footprint, wcs
 
 def plot_4FGL(ax, wcs, ra_center, dec_center, xlength, ylength, npix):
@@ -180,7 +180,7 @@ def plot_4FGL(ax, wcs, ra_center, dec_center, xlength, ylength, npix):
         pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='x', markersize=5, color='white')
         ax.annotate(fermi_name[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90),
-        textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2, 
+        textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2,
         linestyle='-'), color='cyan', rotation=0, ha='right', va='center' ,
         path_effects=[pe.withStroke(linewidth=2, foreground="gray")])
         center = (float(pixelcoord[0]), float(pixelcoord[1]))
@@ -194,8 +194,8 @@ def plot_4hwc1D(ax, wcs, npix):
                 coord2 = SkyCoord(ra=hwc4_ra[i]*u.deg, dec=hwc4_dec[i]*u.deg)
                 pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
                 ax[i].plot(pixelcoord[0], pixelcoord[1], marker='x', markersize=5, color='white')
-                ax[i].annotate('4HWC '+hwc4_name[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90), 
-                textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2, 
+                ax[i].annotate('4HWC '+hwc4_name[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90),
+                textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2,
                 linestyle='-.'), color='white', rotation=30, ha='right', va='center' ,
                 path_effects=[pe.withStroke(linewidth=2, foreground="gray")])
                 hawcext = plt.Circle((pixelcoord[0], pixelcoord[1]), hwc4_ext[i]/npix, color='white', linewidth=2, fill=False, linestyle='-')
@@ -205,8 +205,8 @@ def plot_4hwc1D(ax, wcs, npix):
             coord2 = SkyCoord(ra=hwc4_ra[i]*u.deg, dec=hwc4_dec[i]*u.deg)
             pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
             ax.plot(pixelcoord[0], pixelcoord[1], marker='x', markersize=5, color='white')
-            ax.annotate('4HWC '+hwc4_name[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, -90), 
-            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2, 
+            ax.annotate('4HWC '+hwc4_name[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, -90),
+            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2,
             linestyle='-.'), color='white', rotation=30, ha='right', va='center' ,
             path_effects=[pe.withStroke(linewidth=2, foreground="gray")])
             hawcext = plt.Circle((pixelcoord[0], pixelcoord[1]), hwc4_ext[i]/npix, color='white', linewidth=2, fill=False, linestyle='-')
@@ -230,7 +230,7 @@ def calc_act_from_norm(image, x, min, max):
 
 def check_circle_relation(x1, y1, r1, x2, y2, r2):
     distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-    
+
     if distance + r2 <= r1:
         return 0
     elif distance <= r2:
@@ -246,8 +246,8 @@ def plot_ps_blob(ax, ps_blobs, wcs):
                     blob = ps_blobs[i]
                     y, x, r = blob
                     ax.plot(x, y, marker='x', markersize=5, color='green')
-                    ax.annotate('Blob '+ str(i),xy=(x, y), xycoords='data', xytext=(100, -90), 
-                    textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='green', linewidth=2, 
+                    ax.annotate('Blob '+ str(i),xy=(x, y), xycoords='data', xytext=(100, -90),
+                    textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='green', linewidth=2,
                     linestyle='-.'), color='white', rotation=0, ha='right', va='center' ,
                     path_effects=[pe.withStroke(linewidth=2, foreground="green")])
                     c = plt.Circle((x, y), r, color='green', linewidth=3, fill=False)
@@ -261,8 +261,8 @@ def plot_ext_blob(ax, ext_blobs, wcs):
                     blob = ext_blobs[i]
                     y, x, r = blob
                     ax.plot(x, y, marker='x', markersize=5, color='white')
-                    ax.annotate('Ext Blob '+str(i),xy=(x, y), xycoords='data', xytext=(100, 90), 
-                    textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2, 
+                    ax.annotate('Ext Blob '+str(i),xy=(x, y), xycoords='data', xytext=(100, 90),
+                    textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2,
                     linestyle='-.'), color='white', rotation=0, ha='right', va='center' ,
                     path_effects=[pe.withStroke(linewidth=2, foreground="purple")])
                     c = plt.Circle((x, y), r, color='gray', linewidth=3, fill=False)
@@ -275,7 +275,7 @@ def blob_filter_intensity(blobs, image, min_intensity, wcs, npix):
     filtered_coords = []
     filtered_radius = []
 
-    image = np.asarray(image)
+    # image = np.asarray(image)
     nrows, ncols = image.shape
 
     for y, x, r in blobs:
@@ -288,9 +288,11 @@ def blob_filter_intensity(blobs, image, min_intensity, wcs, npix):
 
         patch = image[y_min:y_max, x_min:x_max]
         yy, xx = np.ogrid[y_min:y_max, x_min:x_max]
+
         dist = np.sqrt((yy - y)**2 + (xx - x)**2)
         mask = dist <= (0.9 * r)
         inside_pixels = patch[mask]
+
         if np.any(inside_pixels > min_intensity):
 
             coord = astropy_utils.pixel_to_skycoord(x, y, wcs=wcs).icrs
@@ -298,12 +300,6 @@ def blob_filter_intensity(blobs, image, min_intensity, wcs, npix):
             filtered_blobs.append((y, x, r))
             filtered_coords.append(coord)
             filtered_radius.append(r * npix)
-
-            # print(
-            #     f"Blob accepted: max pixel={inside_pixels.max():.3f}, "
-            #     f"Coords ({coord.ra}, {coord.dec}), "
-            #     f"Radius={r:.2f}, Angular Radius={r*npix:.3f}"
-            # )
 
     return filtered_blobs, filtered_coords, filtered_radius
 
@@ -374,8 +370,8 @@ def plot_snrcat(ax, wcs, labels=True):
         pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='o', markersize=5, color='cyan')
         if labels:
-            ax.annotate(assoc[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90), 
-            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2, 
+            ax.annotate(assoc[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90),
+            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2,
             linestyle='-.'), color='white', rotation=0, ha='right', va='center' ,
             path_effects=[pe.withStroke(linewidth=2, foreground="gray")])
     ax.plot(pixelcoord[0], pixelcoord[1], marker='o', markersize=5, color='white', label='SNR')
@@ -385,8 +381,8 @@ def injected_sources_plot(names, ra, dec, ext, ax, wcs):
         coord2 = SkyCoord(ra=ra[i]*u.deg, dec=dec[i]*u.deg)
         pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='x', markersize=5, color='blue')
-        ax.annotate('Injected '+names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=16, xytext=(100, -90), 
-        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2, 
+        ax.annotate('Injected '+names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=16, xytext=(100, -90),
+        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='gray', linewidth=2,
         linestyle='-.'), color='white', rotation=0, ha='right', va='center' ,
         path_effects=[pe.withStroke(linewidth=2, foreground="blue")])
         r = ext[i] / 0.0027
@@ -400,8 +396,8 @@ def custom_sources_plot(names, ra, dec, ext, ax, wcs, npix):
         coord2 = SkyCoord(ra=ra[i]*u.deg, dec=dec[i]*u.deg)
         pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='x', markersize=5, color='white')
-        ax.annotate(names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=12, xytext=(100, 90), 
-        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='red', linewidth=2, 
+        ax.annotate(names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=12, xytext=(100, 90),
+        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='red', linewidth=2,
         linestyle='-.'), color='white', rotation=30, ha='right', va='center' ,
         path_effects=[pe.withStroke(linewidth=2, foreground="red")])
         r = ext[i] / npix
@@ -414,8 +410,8 @@ def custom_sources_plot2(names, ra, dec, ext, ax, wcs, npix):
         coord2 = SkyCoord(ra=ra[i]*u.deg, dec=dec[i]*u.deg)
         pixelcoord = astropy_utils.skycoord_to_pixel(coord2, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='o', markersize=5, color='white')
-        ax.annotate('5HWC '+names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=12, xytext=(100, 90), 
-        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='red', linewidth=2, 
+        ax.annotate('5HWC '+names[i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', fontsize=12, xytext=(100, 90),
+        textcoords='offset pixels', arrowprops=dict(arrowstyle="-",color='red', linewidth=2,
         linestyle='-.'), color='white', rotation=30, ha='right', va='center' ,
         path_effects=[pe.withStroke(linewidth=2, foreground="red")])
         r = ext[i] / npix
@@ -500,7 +496,7 @@ def create_circular_mask(h, w, center=None, radius=None):
     with specified center and radius.
     """
     if center is None:
-        center = (int(w / 2), int(h / 2)) 
+        center = (int(w / 2), int(h / 2))
     if radius is None:
         radius = min(h, w) / 4
 
@@ -512,46 +508,46 @@ def create_circular_mask(h, w, center=None, radius=None):
 
 def parula_cmap():
 
-    cm_data = [[0.2081, 0.1663, 0.5292], [0.2116238095, 0.1897809524, 0.5776761905], 
-    [0.212252381, 0.2137714286, 0.6269714286], [0.2081, 0.2386, 0.6770857143], 
-    [0.1959047619, 0.2644571429, 0.7279], [0.1707285714, 0.2919380952, 
-    0.779247619], [0.1252714286, 0.3242428571, 0.8302714286], 
-    [0.0591333333, 0.3598333333, 0.8683333333], [0.0116952381, 0.3875095238, 
-    0.8819571429], [0.0059571429, 0.4086142857, 0.8828428571], 
-    [0.0165142857, 0.4266, 0.8786333333], [0.032852381, 0.4430428571, 
-    0.8719571429], [0.0498142857, 0.4585714286, 0.8640571429], 
-    [0.0629333333, 0.4736904762, 0.8554380952], [0.0722666667, 0.4886666667, 
-    0.8467], [0.0779428571, 0.5039857143, 0.8383714286], 
-    [0.079347619, 0.5200238095, 0.8311809524], [0.0749428571, 0.5375428571, 
-    0.8262714286], [0.0640571429, 0.5569857143, 0.8239571429], 
-    [0.0487714286, 0.5772238095, 0.8228285714], [0.0343428571, 0.5965809524, 
-    0.819852381], [0.0265, 0.6137, 0.8135], [0.0238904762, 0.6286619048, 
-    0.8037619048], [0.0230904762, 0.6417857143, 0.7912666667], 
-    [0.0227714286, 0.6534857143, 0.7767571429], [0.0266619048, 0.6641952381, 
-    0.7607190476], [0.0383714286, 0.6742714286, 0.743552381], 
-    [0.0589714286, 0.6837571429, 0.7253857143], 
-    [0.0843, 0.6928333333, 0.7061666667], [0.1132952381, 0.7015, 0.6858571429], 
-    [0.1452714286, 0.7097571429, 0.6646285714], [0.1801333333, 0.7176571429, 
-    0.6424333333], [0.2178285714, 0.7250428571, 0.6192619048], 
-    [0.2586428571, 0.7317142857, 0.5954285714], [0.3021714286, 0.7376047619, 
-    0.5711857143], [0.3481666667, 0.7424333333, 0.5472666667], 
-    [0.3952571429, 0.7459, 0.5244428571], [0.4420095238, 0.7480809524, 
-    0.5033142857], [0.4871238095, 0.7490619048, 0.4839761905], 
-    [0.5300285714, 0.7491142857, 0.4661142857], [0.5708571429, 0.7485190476, 
-    0.4493904762], [0.609852381, 0.7473142857, 0.4336857143], 
-    [0.6473, 0.7456, 0.4188], [0.6834190476, 0.7434761905, 0.4044333333], 
-    [0.7184095238, 0.7411333333, 0.3904761905], 
-    [0.7524857143, 0.7384, 0.3768142857], [0.7858428571, 0.7355666667, 
-    0.3632714286], [0.8185047619, 0.7327333333, 0.3497904762], 
-    [0.8506571429, 0.7299, 0.3360285714], [0.8824333333, 0.7274333333, 0.3217], 
-    [0.9139333333, 0.7257857143, 0.3062761905], [0.9449571429, 0.7261142857, 
-    0.2886428571], [0.9738952381, 0.7313952381, 0.266647619], 
-    [0.9937714286, 0.7454571429, 0.240347619], [0.9990428571, 0.7653142857, 
-    0.2164142857], [0.9955333333, 0.7860571429, 0.196652381], 
-    [0.988, 0.8066, 0.1793666667], [0.9788571429, 0.8271428571, 0.1633142857], 
-    [0.9697, 0.8481380952, 0.147452381], [0.9625857143, 0.8705142857, 0.1309], 
-    [0.9588714286, 0.8949, 0.1132428571], [0.9598238095, 0.9218333333, 
-    0.0948380952], [0.9661, 0.9514428571, 0.0755333333], 
+    cm_data = [[0.2081, 0.1663, 0.5292], [0.2116238095, 0.1897809524, 0.5776761905],
+    [0.212252381, 0.2137714286, 0.6269714286], [0.2081, 0.2386, 0.6770857143],
+    [0.1959047619, 0.2644571429, 0.7279], [0.1707285714, 0.2919380952,
+    0.779247619], [0.1252714286, 0.3242428571, 0.8302714286],
+    [0.0591333333, 0.3598333333, 0.8683333333], [0.0116952381, 0.3875095238,
+    0.8819571429], [0.0059571429, 0.4086142857, 0.8828428571],
+    [0.0165142857, 0.4266, 0.8786333333], [0.032852381, 0.4430428571,
+    0.8719571429], [0.0498142857, 0.4585714286, 0.8640571429],
+    [0.0629333333, 0.4736904762, 0.8554380952], [0.0722666667, 0.4886666667,
+    0.8467], [0.0779428571, 0.5039857143, 0.8383714286],
+    [0.079347619, 0.5200238095, 0.8311809524], [0.0749428571, 0.5375428571,
+    0.8262714286], [0.0640571429, 0.5569857143, 0.8239571429],
+    [0.0487714286, 0.5772238095, 0.8228285714], [0.0343428571, 0.5965809524,
+    0.819852381], [0.0265, 0.6137, 0.8135], [0.0238904762, 0.6286619048,
+    0.8037619048], [0.0230904762, 0.6417857143, 0.7912666667],
+    [0.0227714286, 0.6534857143, 0.7767571429], [0.0266619048, 0.6641952381,
+    0.7607190476], [0.0383714286, 0.6742714286, 0.743552381],
+    [0.0589714286, 0.6837571429, 0.7253857143],
+    [0.0843, 0.6928333333, 0.7061666667], [0.1132952381, 0.7015, 0.6858571429],
+    [0.1452714286, 0.7097571429, 0.6646285714], [0.1801333333, 0.7176571429,
+    0.6424333333], [0.2178285714, 0.7250428571, 0.6192619048],
+    [0.2586428571, 0.7317142857, 0.5954285714], [0.3021714286, 0.7376047619,
+    0.5711857143], [0.3481666667, 0.7424333333, 0.5472666667],
+    [0.3952571429, 0.7459, 0.5244428571], [0.4420095238, 0.7480809524,
+    0.5033142857], [0.4871238095, 0.7490619048, 0.4839761905],
+    [0.5300285714, 0.7491142857, 0.4661142857], [0.5708571429, 0.7485190476,
+    0.4493904762], [0.609852381, 0.7473142857, 0.4336857143],
+    [0.6473, 0.7456, 0.4188], [0.6834190476, 0.7434761905, 0.4044333333],
+    [0.7184095238, 0.7411333333, 0.3904761905],
+    [0.7524857143, 0.7384, 0.3768142857], [0.7858428571, 0.7355666667,
+    0.3632714286], [0.8185047619, 0.7327333333, 0.3497904762],
+    [0.8506571429, 0.7299, 0.3360285714], [0.8824333333, 0.7274333333, 0.3217],
+    [0.9139333333, 0.7257857143, 0.3062761905], [0.9449571429, 0.7261142857,
+    0.2886428571], [0.9738952381, 0.7313952381, 0.266647619],
+    [0.9937714286, 0.7454571429, 0.240347619], [0.9990428571, 0.7653142857,
+    0.2164142857], [0.9955333333, 0.7860571429, 0.196652381],
+    [0.988, 0.8066, 0.1793666667], [0.9788571429, 0.8271428571, 0.1633142857],
+    [0.9697, 0.8481380952, 0.147452381], [0.9625857143, 0.8705142857, 0.1309],
+    [0.9588714286, 0.8949, 0.1132428571], [0.9598238095, 0.9218333333,
+    0.0948380952], [0.9661, 0.9514428571, 0.0755333333],
     [0.9763, 0.9831, 0.0538]]
 
     parula_map = LinearSegmentedColormap.from_list('parula', cm_data)
@@ -613,8 +609,8 @@ def plot_1lhaaso(ax, wcs, npix):
             coord_gal = coord2.galactic
             pixelcoord = astropy_utils.skycoord_to_pixel(coord_gal, wcs)
             ax.plot(pixelcoord[0], pixelcoord[1], marker='o', markersize=5, color='white')
-            ax.annotate(df['Source name'][i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90), 
-            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='blue', linewidth=2, 
+            ax.annotate(df['Source name'][i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 90),
+            textcoords='offset points', arrowprops=dict(arrowstyle="-",color='blue', linewidth=2,
             linestyle='-.'), color='white', rotation=0, ha='right', va='center' ,
             path_effects=[pe.withStroke(linewidth=2, foreground="blue")])
             hawcext = plt.Circle((pixelcoord[0], pixelcoord[1]), float(df['r_39'][i])/npix, color='blue', linewidth=2, fill=False, linestyle='-')
@@ -626,8 +622,8 @@ def plot_hgps(ax, wcs, npix):
         coord_gal = coord2.galactic
         pixelcoord = astropy_utils.skycoord_to_pixel(coord_gal, wcs)
         ax.plot(pixelcoord[0], pixelcoord[1], marker='o', markersize=5, color='white')
-        ax.annotate(hess_catalog['Source_Name'][i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 145), 
-        textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2, 
+        ax.annotate(hess_catalog['Source_Name'][i],xy=(pixelcoord[0], pixelcoord[1]), xycoords='data', xytext=(100, 145),
+        textcoords='offset points', arrowprops=dict(arrowstyle="-",color='white', linewidth=2,
         linestyle='-.'), color='gray', rotation=0, ha='right', va='center' ,
         path_effects=[pe.withStroke(linewidth=2, foreground="white")])
         if hess_catalog['Size'][i] != ' ':
@@ -698,7 +694,7 @@ def ultimet(vmin, vmax, threshold, color_map='turbo', n=256, blend_fraction=0.05
     n2 = int((t_high - t_low) * n)
     n3 = n - n1 - n2
 
-    gray_part = plt.cm.binary(np.linspace(0.2, 0.8, max(n1, 1))) 
+    gray_part = plt.cm.binary(np.linspace(0.2, 0.8, max(n1, 1)))
     blend = np.linspace(0, 1, max(n2, 1))
     cgray = gray_part[-1] if len(gray_part) else plt.cm.binary(0.8)
     cstart = plt.get_cmap(color_map)(0.0)
@@ -761,16 +757,16 @@ def make_pulsar_plotter(marker_color='lime', label_color='white', marker_size=6,
 
 def radius_to_sigma(R, fraction=0.6827):
     return R / np.sqrt(2 * np.log(1 / (1 - fraction)))
- 
+
 def load_hawc_data(filename, x, y, xlength, ylength, coord_sys):
     """
     Load HAWC data from a given directory and observation ID.
-    
+
     Parameters:
     - hawc_dir: Directory containing HAWC data
     - run: Run number
     - obsid: Observation ID
-    
+
     Returns:
     - Dictionary containing the loaded data
     """
@@ -779,7 +775,7 @@ def load_hawc_data(filename, x, y, xlength, ylength, coord_sys):
     else:
         print(f"ROI center in Galactic Coordintes = {x}, {y}")
 
-    origin = [x, y, xlength, ylength] 
+    origin = [x, y, xlength, ylength]
 
     # Load the data from the specified file
     array, footprint, wcs = loadmap(filename, coord_sys, origin, 'origin')
@@ -805,16 +801,41 @@ def find_well(array, wcs):
     print("Well intensity value:", array[peak_index])
 
 def make_plots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blobs=None, contour=False, title=None, hotspots=None, save_dir=None, pdf=False, cmap='inferno', figsize=(10, 6), **kwargs):
+    """Generate image utilized for image processing and for presentation
+
+    Args:
+        array (arr(float)): image data
+        wcs (_type_): _description_
+        npix (float): pixel size
+        coordsys (str): galactic or celestial coordinates
+        threshold (float, optional): sigma threshold for filter. Defaults to 4.
+        vmin (int, optional): lower lim on z-scale. Defaults to -5.
+        vmax (int, optional): upper lim on z-scale. Defaults to 15.
+        blobs (list(tuple), optional): List of blobs. Defaults to None.
+        contour (bool, optional): show TS contours. Defaults to False.
+        title (str, optional): Plot title. Defaults to None.
+        hotspots (_type_, optional): _description_. Defaults to None.
+        save_dir (str, optional): path for image save. Defaults to None.
+        pdf (bool, optional): Save img as pdf. Defaults to False.
+        cmap (str, optional): color map for . Defaults to 'inferno'.
+        figsize (tuple, optional): Defaults to (10, 6).
+
+        Return:
+        fig, ax: matplotlib figure and axis objects
+    """
+
+
     fig = plt.figure(figsize=(figsize[0] , figsize[1]))
     ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
     if cmap=='ult':
         ult = ultimet(vmin, vmax, threshold)
         im = ax.imshow(array, cmap=ult, vmin=vmin, vmax=vmax)
     else:
         im = ax.imshow(array, cmap=cmap, vmin=vmin, vmax=vmax)
+
     plt.colorbar(im, ax=ax, label=r'Significance($\sigma$)', fraction=0.046, pad=0.04)
     ax.grid(False)
-
 
     if hotspots is not None:
         labelA = hotspots['Name']
@@ -822,32 +843,29 @@ def make_plots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blobs=
         decA = hotspots['dec']
         extA = hotspots['ext']
         custom_sources_plot(labelA, raA, decA, extA, ax, wcs, npix)
+
     if title:
         ax.set_title(title)
+
     if contour:
-        if np.max(array) > 15:
-            levels = [7, 9, 12, 13, 14, 15]
-            print(f"Plotting contours {levels}")
-            hi_transform = ax.get_transform(wcs)
-            ax.contour(array, levels=levels, transform=hi_transform, colors='black')
-        elif np.max(array) > 12:
-            levels = [5, 7, 9, 11]
-            print(f"Plotting contours {levels}")
-            hi_transform = ax.get_transform(wcs)
-            ax.contour(array, levels=levels, transform=hi_transform, colors='black')
-        elif np.max(array) > 5:
-            levels = [5, 6, 7]
-            print(f"Plotting contours {levels}")
-            hi_transform = ax.get_transform(wcs)
-            ax.contour(array, levels=levels, transform=hi_transform, colors='black')
-        else:
-            print("No contours to plot")
+        print("Adding contours")
+
+        # I changed it so it contours on every single line of sigma.
+        # This will make very significant sources black, but that's okay
+        levels = np.linspace(threshold, np.max(array), 10)
+
+        print(f"Plotting contours {levels}")
+        hi_transform = ax.get_transform(wcs)
+        ax.contour(array, levels=levels, transform=hi_transform, colors='black')
+
     xnum, ynum  = array.shape[1], array.shape[0]
     plot_ax_label(ax, coordsys)
+
     ax.set_xlim(0, xnum)
     ax.set_ylim(0, ynum)
     ax.coords[0].set_format_unit('deg')
-    ax.coords[1].set_format_unit('deg') 
+    ax.coords[1].set_format_unit('deg')
+
     if 'labels' in kwargs:
         if '4hawc' in kwargs['labels']:
             plot_4hwc1D(ax, wcs, npix)
@@ -860,14 +878,17 @@ def make_plots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blobs=
             center_coord = pixel_to_skycoord(center_x, center_y, wcs)
             try:
                 plot_4FGL(ax, wcs, center_coord.ra.deg, center_coord.dec.deg, array.shape[1] / 2, array.shape[0] / 2, npix)
-            except: 
+            except:
                 plot_4FGL(ax, wcs, center_coord.l.deg, center_coord.b.deg, array.shape[1] / 2, array.shape[0] / 2, npix)
+
         if 'snr' in kwargs['labels']:
             plot_snrcat(ax, wcs)
+
         if 'pulsar' in kwargs['labels']:
             pulsar_data = parse_pulsar_db()
             plot_pulsars = make_pulsar_plotter(marker_color='cyan')
             plot_pulsars(ax, wcs, pulsar_data)
+
     if blobs:
         if 'psblobs' in blobs:
             ps_data = blobs['psblobs']
@@ -875,13 +896,16 @@ def make_plots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blobs=
         if 'extblobs' in blobs:
             ext_data = blobs['extblobs']
             plot_ext_blob(ax, ext_data, wcs)
+
     ax.grid(False)
     plt.tight_layout()
+
     if save_dir !=None:
         if pdf:
             pdf.savefig(fig, bbox_inches='tight')
         else:
             fig.savefig(save_dir + f'{title}.png')
+
     return fig, ax
 
 def make_logplots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blobs=None, contour=False, title=None, hotspots=None, save_dir=None, pdf=False, cmap='inferno', figsize=(10, 6), ax=None, **kwargs):
@@ -943,7 +967,7 @@ def make_logplots(array, wcs, npix, coordsys, threshold=4, vmin=-5, vmax=15, blo
             center_coord = pixel_to_skycoord(center_x, center_y, wcs)
             try:
                 plot_4FGL(ax, wcs, center_coord.ra.deg, center_coord.dec.deg, array.shape[1] / 2, array.shape[0] / 2, npix)
-            except: 
+            except:
                 plot_4FGL(ax, wcs, center_coord.l.deg, center_coord.b.deg, array.shape[1] / 2, array.shape[0] / 2, npix)
         if 'snr' in kwargs['labels']:
             plot_snrcat(ax, wcs)
@@ -1100,7 +1124,7 @@ def analyze_histogram(dog_image, plot=False, save_pdf=False, pdf=None):
 
     pixels = dog_image.flatten()
     counts, bin_edges = np.histogram(pixels, bins=200, range=(np.min(pixels), np.max(pixels)))
-    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2 
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
 
     def gaussian_fit(x, amplitude, mean, stddev):
         return amplitude * np.exp(-((x - mean)**2) / (2 * stddev**2))
@@ -1117,10 +1141,10 @@ def analyze_histogram(dog_image, plot=False, save_pdf=False, pdf=None):
     fit_interp = interp1d(x_fit, y_fit, bounds_error=False, fill_value=0)
     gaussian_at_bins = fit_interp(bin_centers)
 
-    # Compute deviation mask: where histogram exceeds Gaussian expectation on the positive side 
+    # Compute deviation mask: where histogram exceeds Gaussian expectation on the positive side
     deviation_mask = (bin_centers > popt[1]) & (counts > 1.1 * gaussian_at_bins)
     # Total excess counts above the fitted Gaussian
-    chi_squared = np.sum(((counts[deviation_mask] - gaussian_at_bins[deviation_mask])**2) / 
+    chi_squared = np.sum(((counts[deviation_mask] - gaussian_at_bins[deviation_mask])**2) /
                      gaussian_at_bins[deviation_mask])
 
     # Degrees of freedom
@@ -1132,7 +1156,7 @@ def analyze_histogram(dog_image, plot=False, save_pdf=False, pdf=None):
         if np.all(deviation_mask[i:]):
             j = i
             break
-    
+
     mask_deviation_value = bin_centers[j]
     print(f"Significant deviation from Gaussian on positive side at:{j},  {mask_deviation_value:.5f}")
     excess_pixel_mask = dog_image.flatten() > mask_deviation_value
@@ -1156,7 +1180,7 @@ def analyze_histogram(dog_image, plot=False, save_pdf=False, pdf=None):
         peak_signal = np.max(signal_pixels)
         peak_SNR = peak_signal / noise
         print(f"Peak SNR: {peak_SNR:.2f}")
-        
+
     sigma_resid = popt[2]
     deviation_3sig = 3*sigma_resid
     deviation_2sig = 2*sigma_resid
@@ -1168,11 +1192,11 @@ def analyze_histogram(dog_image, plot=False, save_pdf=False, pdf=None):
     print("Signal-to-noise ratio (SNR) metric based blah:", SNR)
     if plot:
         fig=plt.figure(figsize=(10, 8))
-        log_counts = np.where(counts > 0, counts, 1) 
+        log_counts = np.where(counts > 0, counts, 1)
         plt.hist(pixels, bins=200, range=(np.min(pixels), np.max(pixels)),  color='fuchsia', edgecolor='green', alpha=0.6, label='Histogram (Counts)',histtype='step', linewidth=3)
         plt.plot(x_fit, y_fit, 'r-', linewidth=2, label=f'Fit\nμ={popt[1]:.5f}, σ={popt[2]:.5f}')
         if np.any(deviation_mask):
-            plt.axvline(mask_deviation_value, color='blue', linestyle='--', linewidth=2, 
+            plt.axvline(mask_deviation_value, color='blue', linestyle='--', linewidth=2,
                         label=f'Deviation from fit ≈ {mask_deviation_value:.5f}')
         plt.axvline(deviation_2sig, label=f'2 $\sigma$  = {3*popt[2]:.5f}', color='black')
         plt.axvline(deviation_3sig, label=f'3 $\sigma$  = {3*popt[2]:.5f}', color='purple')
@@ -1262,6 +1286,7 @@ def combine_blobs(all_blobs, all_coords, all_radii):
 
 def estimate_background_sigma(image, sigma=3, maxiters=5):
     """Sigma-clipped RMS of the DoG residual map."""
+
     clipped = sigma_clip(image, sigma=sigma, maxiters=maxiters)
     return float(np.std(clipped.data[~clipped.mask]))
 
@@ -1459,7 +1484,7 @@ def threeML_model_from_sources(filtered_df):
             sources[f"spectrum{i}"].K = 1e-24 * fluxUnit
             sources[f"spectrum{i}"].K.fix = False
             sources[f"spectrum{i}"].K.bounds = (1e-26, 1e-20) * fluxUnit
-            sources[f"spectrum{i}"].index = -2.5 
+            sources[f"spectrum{i}"].index = -2.5
             sources[f"spectrum{i}"].index.fix = False
             sources[f"spectrum{i}"].index.bounds = (-3, -1)
             sources[f"spectrum{i}"].piv = 2 * u.TeV
@@ -1508,4 +1533,3 @@ def threeML_model_from_sources(filtered_df):
     allmodel = Model(*sources.values())
 
     return allmodel, sources
-
