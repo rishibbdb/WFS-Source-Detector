@@ -1300,13 +1300,16 @@ def run_ext(extmap, pixel_size, threshold_val, border_pixels):
                     min_sigma=0.5 / pixel_size, max_sigma=1 / pixel_size,
                     threshold=threshold_val, exclude_border=border_pixels, overlap=0.7)
 
-def compute_bright_frac(image, ly, lx, lr):
+def compute_bright_frac(image, ly, lx, lr, threshold=5):
     """Fraction of pixels within blob circle brighter than the center pixel."""
     y_min, y_max = int(max(ly - lr, 0)), int(min(ly + lr, image.shape[0]))
     x_min, x_max = int(max(lx - lr, 0)), int(min(lx + lr, image.shape[1]))
+
     yy, xx       = np.mgrid[y_min:y_max, x_min:x_max]
     mask_circle  = np.sqrt((yy - ly)**2 + (xx - lx)**2) <= lr
-    mask_bright  = mask_circle & (image[y_min:y_max, x_min:x_max] > 7)
+
+    mask_bright  = mask_circle & (image[y_min:y_max, x_min:x_max] > threshold)
+
     return mask_bright.sum() / mask_circle.sum()
 
 def overlap_fraction(ly, lx, lr, sy, sx, sr):

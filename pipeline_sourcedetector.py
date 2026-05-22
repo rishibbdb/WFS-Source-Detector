@@ -101,7 +101,11 @@ class SourceSeedDetector:
 
         # These are detector-specific and can be up to the user.
         self.SIG_THRESHOLD = 5.0
+        self.detector_PSF = 0.3  # PSF size in degrees, used for blob grouping
         self.SMEAR_RADII = [0.25, 0.3, 0.4, 0.5]
+
+        # These are configurations for the blob finder
+        self.intensity_treshold = 5.0
 
     def load_hawc_data(self):
         self.array, self.header, self.wcs, self.xnum, self.ynum, self.pixel_size = load_hawc_data(
@@ -270,8 +274,9 @@ class SourceSeedDetector:
             ly, lx, lr = lb
             ly, lx     = int(ly), int(lx)
 
-            bright_frac = compute_bright_frac(self.array, ly, lx, lr)
-            print(f"Intensity Fraction of pixels greater than 5 sigma detection threshold = {100*bright_frac:.1f}%")
+            bright_frac = compute_bright_frac(self.array, ly, lx, lr,
+                                              threshold=self.intensity_treshold)
+            print(f"Intensity Fraction of pixels greater than {self.intensity_treshold} sigma detection threshold = {100*bright_frac:.1f}%")
 
             if bright_frac < 0.5:
                 print("Larger blob is artifact of blob detection on subtracted map")
@@ -312,7 +317,7 @@ class SourceSeedDetector:
                             f"removing {len(dimmer_sbs)} dimmer SBs")
                         continue
                 print(f"  No smaller blobs overlapping larger blob — tagging as EXT")
-                
+
                 for sb, _ in sbs:
                     sy, sx, sr  = sb
                     sy, sx      = int(sy), int(sx)
@@ -326,29 +331,35 @@ class SourceSeedDetector:
                         ps_flagged.append(sb)
                         print(f"  Very close PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° — tagging as EXT")
                         continue
+
                     if ovl is None:
-                        if sep_deg > 0.3:
+                        print("Blobs are found with partial overlap")
+                        if sep_deg > self.detector_PSF:
                             tag_ps += 1
                             ps_flagged.append(sb)
-                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap — tagging as PS")
+                            print(f"  PS SB centers are further away than PSF (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° with partial overlap  — tagging as PS")
+
                         else:
                             if delta_ts < 5:
                                 tag_ex+=1
                                 ps_flagged.append(sb)
-                                print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap but low TS difference ({delta_ts:.1f}) — tagging as EXT")
+                                print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and partial overlap but low TS difference ({delta_ts:.1f}) — tagging as EXT")
                             else:
                                 self.ps_removed_group.append(sb)
-                                print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap but high TS difference ({delta_ts:.1f}) — tagging as PS")
+                                print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and partial overlap but high TS difference ({delta_ts:.1f}) — tagging as PS")
+
                     elif ovl == 1.0:
                         if sep_deg > 0.3 and delta_ts >= 9:
                             tag_ps += 1;  tag_ex += 1;  ps_flagged.append(sb)
-                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap but high TS difference ({delta_ts:.1f}) — tagging as PS")
+                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and overlapping but high TS difference ({delta_ts:.1f}) — tagging as PS")
                         elif delta_ts >= 9:
                             tag_ps += 1;  ps_flagged.append(sb)
-                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap but high TS difference ({delta_ts:.1f}) — tagging as PS")
+                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and overlapping but high TS difference ({delta_ts:.1f}) — tagging as PS")
                         else:
                             self.ps_removed_group.append(sb)
-                            print(f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and no overlap but high TS difference ({delta_ts:.1f}) — tagging as PS")
+                            print(
+                                f"  PS blob at (x={sx}, y={sy}, r={sr:.2f} pixels) with sep={sep_deg:.3f}° and overlapping but low TS difference ({delta_ts:.1f}) — removing PS"
+                            )
 
             if tag_ex > 0:
                 self.ext_removed_group.append(lb)
@@ -682,7 +693,6 @@ class SourceSeedDetector:
         print(f"  Sig range  : [{np.min(self.array):.2f}, {np.max(self.array):.2f}]")
 
         self.max_signif = find_peak(self.array, self.wcs)
-
 
         # Plot the original data and the normalized data
         self.plot_maps(self.array, self.wcs, self.pixel_size, self.seed_coord_sys, self.max_signif, -5, 15, 5, contour=True, title='OriginalSkyImage', labels=['4hwc'])
