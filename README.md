@@ -1,8 +1,8 @@
 # Wide-Field-Survey(WFS) Source Seed Detector (DRIPS) 
 
-A Claude description of the algorithm ( which is 98% true )
+A  pipeline for automated detection and analysis of gamma-ray sources with application to HAWC (High Altitude Water Cherenkov Observatory) data. The pipeline performs blob detection, filtering, and generates source seeds for 3ML (Multi-Mission Maximum Likelihood) fitting.
 
-A comprehensive pipeline for automated detection and analysis of gamma-ray sources with application to HAWC (High Altitude Water Cherenkov Observatory) data. The pipeline performs blob detection, filtering, and generates source seeds for 3ML (Multi-Mission Maximum Likelihood) fitting.
+**Note**: This pipeline can be extended to other astronomical surveys. This requires a careful study of the point-spread function of the detector and the properties of the sources observed by this detector. 
 
 ## Features
 
@@ -15,6 +15,7 @@ A comprehensive pipeline for automated detection and analysis of gamma-ray sourc
 - **Parallel Processing**: Uses ThreadPoolExecutor for efficient multi-threaded blob detection
 
 ## Future Modifications
+- Include plugins for using FITS files from generic astronomical surveys, such as molecular clouds surveys, to identify large-scale structures. 
 - Include a plugins for the source detection on Fermi-LAT, IceCube, LHAASO
 - Include modifications for H.E.S.S., VERITAS
 - Implementation of Gammapy source seeding routines
@@ -36,15 +37,26 @@ A comprehensive pipeline for automated detection and analysis of gamma-ray sourc
 
 ```bash
 git clone git@github.com:rishibbdb/WFS-Source-Detector.git
-cd hawc-source-detector
+cd WFS-Source-Detector
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+mamba create -n astro_hal \
+    python=3.10 \
+    numpy scipy pandas \
+    astropy matplotlib \
+    scikit-image pyyaml \
+    -c conda-forge
 
-# Install dependencies
-pip install -r requirements.txt
+# Activate environment:
+conda activate astro_hal
+
+# Install the remaining dependencies using pip
+pip install threeML astromodels
 ```
+### **Optional** Install ROOT
+
+Root is optional and is only required when performing a likelihood fitting with 3ML using the image processing seeding technique and is detailed in the following link 
+
 
 ## Configuration
 
