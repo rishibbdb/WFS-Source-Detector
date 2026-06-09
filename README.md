@@ -56,7 +56,9 @@ pip install threeML astromodels
 ### **Optional** Install ROOT
 
 Root is optional and is only required when performing a likelihood fitting with 3ML using the image processing seeding technique and is detailed in the following link 
-
+```bash
+https://github.com/rishibbdb/HAWC-ImageProcessing-Analysis-Workflow
+```
 
 ## Configuration
 
