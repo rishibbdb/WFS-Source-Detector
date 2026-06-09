@@ -302,6 +302,30 @@ For issues, questions, or suggestions:
 - Open an [GitHub Issue](https://github.com/rishibbdb/WFS-Source-Detector/issues)
 - Contact: rbabu@mtu.edu, rbabu@icecube.wisc.edu
 
+## Citation
+
+If you use this software in your research or publications, please cite it the preliminary work as (Full publication in progress):
+
+```bibtex
+@ARTICLE{2025arXiv250710307B,
+       author = {{Babu}, Rishi and {Wentworth}, Palmer and {Herzog}, Ian and {Salazar}, Dan and {Nisa}, Mehr Un},
+        title = "{Improving Gamma-ray Source Search with Image Processing}",
+      journal = {arXiv e-prints},
+     keywords = {High Energy Astrophysical Phenomena, Instrumentation and Methods for Astrophysics},
+         year = 2025,
+        month = jul,
+          eid = {arXiv:2507.10307},
+        pages = {arXiv:2507.10307},
+          doi = {10.48550/arXiv.2507.10307},
+archivePrefix = {arXiv},
+       eprint = {2507.10307},
+ primaryClass = {astro-ph.HE},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2025arXiv250710307B},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+}
+```
+
 ## References
 
 - [HAWC Observatory](https://www.hawc-observatory.org/)
@@ -311,5 +335,5 @@ For issues, questions, or suggestions:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: April 2026
+**Version**: 1.1.0  
+**Last Updated**: June 2026
