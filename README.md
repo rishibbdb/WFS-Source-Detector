@@ -44,7 +44,8 @@ mamba create -n astro_hal \
     python=3.10 \
     numpy scipy pandas \
     astropy matplotlib \
-    scikit-image pyyaml \
+    scikit-image pyyaml reproject \
+    tqdm ROOT threeML \
     -c conda-forge
 
 # Activate environment:
